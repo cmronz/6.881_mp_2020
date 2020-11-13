@@ -92,124 +92,9 @@ def sample_cube(bounds):
     r = np.random.uniform(low=0.0, high=1.0, size=3)
     return (minx + (maxx-minx)*r[0], miny + (maxy-miny)*r[1], minz + (maxz-minz)*r[2])
 
-
-
 #####################################################################
-############################# Plain RRT #############################
+############################ Environment ############################
 #####################################################################
-
-# def rrt(bounds, environment, start_point, radius, goal_point):
-def rrt(bounds, start_point, radius, goal_point, time_out=False):
-    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
-    start_t = time.time()
-    extend_length = .75
-    root = Node(start_point)
-
-    lines_to_display = list()
-
-    steps = 0
-    
-    while True:
-
-        steps += 1
-
-        # Randomly select a new node to add to the graph
-        ran_loc = sample_cube(bounds)
-        
-        
-        # Find a node nearest to the graph
-        nn = find_nearest_neighbor(ran_loc, [d for d in root.all_descendents])#nodes)
-        
-        # Get the line going from nearest to random point,
-        dz = ran_loc[2] - nn.xyz[2]
-        dy = ran_loc[1] - nn.xyz[1]
-        dx = ran_loc[0] - nn.xyz[0]
-        mag = (dz**2 + dy**2 + dx**2)**.5
-        new_point = (nn.xyz[0] + dx/mag * extend_length, nn.xyz[1] + dy/mag * extend_length, nn.xyz[2] + dz/mag)
-
-        lines_to_display.append((nn.xyz, new_point))
-
-        ''' Still Need to Check for Collisions '''
-        # l = LineString([nn.point, new_point])
-        # buff = l.buffer(radius, resolution=3)
-        # cols = [buff.intersects(ob) for ob in environment.obstacles]
-        # if any(cols):
-        #     continue
-            
-        # add this to the graph, and display
-        node = Node(new_point, parent=nn)
-        nn.children.append(node)
-        # plot_line(ax, l)
-        
-        # check if we reach end goal
-        if close_enough(new_point, goal_point, .9):
-            path = [n for n in node.path]
-            # plot the path
-            # pl = LineString(path)
-            return path, lines_to_display
-
-        if steps >= 1000 and time_out:
-            return list(), lines_to_display
-
-#####################################################################
-############################ Directed RRT ###########################
-#####################################################################
-
-# def rrt(bounds, environment, start_point, radius, goal_point):
-def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
-    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
-    start_t = time.time()
-    extend_length = 1
-    root = Node(start_point)
-
-    lines_to_display = list()
-
-    steps = 0
-    
-    while True:
-
-        steps += 1
-
-        if np.random.rand() < prob_sample_goal:
-            ran_loc = goal_point
-        else:
-            # Randomly select a new node to add to the graph
-            ran_loc = sample_cube(bounds)
-        
-        
-        # Find a node nearest to the graph
-        nn = find_nearest_neighbor(ran_loc, [d for d in root.all_descendents])#nodes)
-        
-        # Get the line going from nearest to random point,
-        dz = ran_loc[2] - nn.xyz[2]
-        dy = ran_loc[1] - nn.xyz[1]
-        dx = ran_loc[0] - nn.xyz[0]
-        mag = (dz**2 + dy**2 + dx**2)**.5
-        new_point = (nn.xyz[0] + dx/mag * extend_length, nn.xyz[1] + dy/mag * extend_length, nn.xyz[2] + dz/mag)
-
-        lines_to_display.append((nn.xyz, new_point))
-
-        ''' Still Need to Check for Collisions '''
-        # l = LineString([nn.point, new_point])
-        # buff = l.buffer(radius, resolution=3)
-        # cols = [buff.intersects(ob) for ob in environment.obstacles]
-        # if any(cols):
-        #     continue
-            
-        # add this to the graph, and display
-        node = Node(new_point, parent=nn)
-        nn.children.append(node)
-        # plot_line(ax, l)
-        
-        # check if we reach end goal
-        if close_enough(new_point, goal_point, 1.0):
-            path = [n for n in node.path]
-            # plot the path
-            # pl = LineString(path)
-            return path, lines_to_display
-
-        if steps >= 1000 and time_out:
-            return list(), lines_to_display
 
 class Environment:
     def __init__(self, filename='rrt3d', bounds=None):
@@ -322,47 +207,305 @@ class Environment:
         """
         py.offline.plot(self.fig, filename=self.filename, auto_open=auto_open)
 
+
+
+#####################################################################
+############################# Plain RRT #############################
+#####################################################################
+
+# def rrt(bounds, environment, start_point, radius, goal_point):
+def rrt(bounds, start_point, radius, goal_point, time_out=False):
+    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    start_t = time.time()
+    extend_length = .75
+    root = Node(start_point)
+
+    lines_to_display = list()
+
+    steps = 0
+    
+    while True:
+
+        steps += 1
+
+        # Randomly select a new node to add to the graph
+        ran_loc = sample_cube(bounds)
+        
+        
+        # Find a node nearest to the graph
+        nn = find_nearest_neighbor(ran_loc, [d for d in root.all_descendents])#nodes)
+        
+        # Get the line going from nearest to random point,
+        dz = ran_loc[2] - nn.xyz[2]
+        dy = ran_loc[1] - nn.xyz[1]
+        dx = ran_loc[0] - nn.xyz[0]
+        mag = (dz**2 + dy**2 + dx**2)**.5
+        new_point = (nn.xyz[0] + dx/mag * extend_length, nn.xyz[1] + dy/mag * extend_length, nn.xyz[2] + dz/mag)
+
+        lines_to_display.append((nn.xyz, new_point))
+
+        ''' Still Need to Check for Collisions '''
+        # l = LineString([nn.point, new_point])
+        # buff = l.buffer(radius, resolution=3)
+        # cols = [buff.intersects(ob) for ob in environment.obstacles]
+        # if any(cols):
+        #     continue
+            
+        # add this to the graph, and display
+        node = Node(new_point, parent=nn)
+        nn.children.append(node)
+        # plot_line(ax, l)
+        
+        # check if we reach end goal
+        if close_enough(new_point, goal_point, .9):
+            path = [n for n in node.path]
+            # plot the path
+            # pl = LineString(path)
+            return path, lines_to_display, time.time() - start_t
+
+        if steps >= 1000 and time_out:
+            return list(), lines_to_display, time.time() - start_t
+
+#####################################################################
+############################ Directed RRT ###########################
+#####################################################################
+
+# def rrt(bounds, environment, start_point, radius, goal_point):
+def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
+    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    start_t = time.time()
+    extend_length = 1
+    root = Node(start_point)
+
+    lines_to_display = list()
+
+    steps = 0
+    
+    while True:
+
+        steps += 1
+
+        if np.random.rand() < prob_sample_goal:
+            ran_loc = goal_point
+        else:
+            # Randomly select a new node to add to the graph
+            ran_loc = sample_cube(bounds)
+        
+        
+        # Find a node nearest to the graph
+        nn = find_nearest_neighbor(ran_loc, [d for d in root.all_descendents])#nodes)
+        
+        # Get the line going from nearest to random point,
+        dz = ran_loc[2] - nn.xyz[2]
+        dy = ran_loc[1] - nn.xyz[1]
+        dx = ran_loc[0] - nn.xyz[0]
+        mag = (dz**2 + dy**2 + dx**2)**.5
+        new_point = (nn.xyz[0] + dx/mag * extend_length, nn.xyz[1] + dy/mag * extend_length, nn.xyz[2] + dz/mag)
+
+        lines_to_display.append((nn.xyz, new_point))
+
+        ''' Still Need to Check for Collisions '''
+        # l = LineString([nn.point, new_point])
+        # buff = l.buffer(radius, resolution=3)
+        # cols = [buff.intersects(ob) for ob in environment.obstacles]
+        # if any(cols):
+        #     continue
+            
+        # add this to the graph, and display
+        node = Node(new_point, parent=nn)
+        nn.children.append(node)
+        # plot_line(ax, l)
+        
+        # check if we reach end goal
+        if close_enough(new_point, goal_point, 1.0):
+            path = [n for n in node.path]
+            # plot the path
+            # pl = LineString(path)
+            return path, lines_to_display, time.time() - start_t
+
+        if steps >= 1000 and time_out:
+            return list(), lines_to_display, time.time() - start_t
+
+#####################################################################
+################################ RRT* ###############################
+#####################################################################
+
+# def rrt(bounds, environment, start_point, radius, goal_point):
+def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
+    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    start_t = time.time()
+    extend_length = 1
+    root = Node(start_point)
+
+    lines_to_display = list()
+
+    steps = 0
+    
+    while True:
+
+        steps += 1
+
+        if np.random.rand() < prob_sample_goal:
+            ran_loc = goal_point
+        else:
+            # Randomly select a new node to add to the graph
+            ran_loc = sample_cube(bounds)
+        
+        
+        # Find a node nearest to the graph
+        nn = find_nearest_neighbor(ran_loc, [d for d in root.all_descendents])#nodes)
+        
+        # Get the line going from nearest to random point,
+        dz = ran_loc[2] - nn.xyz[2]
+        dy = ran_loc[1] - nn.xyz[1]
+        dx = ran_loc[0] - nn.xyz[0]
+        mag = (dz**2 + dy**2 + dx**2)**.5
+        new_point = (nn.xyz[0] + dx/mag * extend_length, nn.xyz[1] + dy/mag * extend_length, nn.xyz[2] + dz/mag)
+
+        lines_to_display.append((nn.xyz, new_point))
+
+        ''' Still Need to Check for Collisions '''
+        # l = LineString([nn.point, new_point])
+        # buff = l.buffer(radius, resolution=3)
+        # cols = [buff.intersects(ob) for ob in environment.obstacles]
+        # if any(cols):
+        #     continue
+            
+        # add this to the graph, and display
+        node = Node(new_point, parent=nn)
+        nn.children.append(node)
+        # plot_line(ax, l)
+        
+        # check if we reach end goal
+        if close_enough(new_point, goal_point, 1.0):
+            path = [n for n in node.path]
+            # plot the path
+            # pl = LineString(path)
+            return path, lines_to_display, time.time() - start_t
+
+        if steps >= 1000 and time_out:
+            return list(), lines_to_display, time.time() - start_t
+
+#####################################################################
+#####################################################################
+#####################################################################
+#####################################################################
+########################### Visualization ###########################
+#####################################################################
+#####################################################################
+#####################################################################
+#####################################################################
+
 environment_bounds = (0, 0, 0, 15, 15, 15)
 start_point = (0, 0, 0)  # starting location
 goal_point = (10, 10, 10)  # goal location
 radius = 3 # radius of robot moving (used in collision detection)
 
 
-path, lines = rrt(environment_bounds, start_point, radius, goal_point, True)
-# path, lines = rrt(environment_bounds, start_point, radius, goal_point)
+#####################################################################
+############################# Plain RRT #############################
+#####################################################################
 
-e = Environment('rrt', bounds=environment_bounds)
+# # path, lines = rrt(environment_bounds, start_point, radius, goal_point, True)
+# path, lines, rrt_time = rrt(environment_bounds, start_point, radius, goal_point)
+
+# e = Environment('rrt', bounds=environment_bounds)
 
 # for line in lines:
 #     e.add_line(line)
 
+# e_title = "Plain RRT Path Length = {}, Time to Complete = {} sec".format(len(path), rrt_time)
 # e.add_path(path)
 # e.add_start(start_point)
 # e.add_goal(goal_point)
 
 # fig = go.Figure(data=e.data)
 
+# fig.update_layout(
+#     title=e_title,
+#     font_family="Courier New",
+#     font_color="blue",
+#     title_font_family="Times New Roman",
+#     title_font_color="red",
+#     legend_title_font_color="green"
+# )
+
 # fig.show()
 
+#####################################################################
+############################ Directed RRT ###########################
+#####################################################################
 
-dir_e = Environment('directed rrt', bounds=environment_bounds)
-
-dir_path, dir_lines = directed_rrt(environment_bounds, start_point, radius, goal_point)
-for dline in dir_lines:
-    dir_e.add_line(dline)
-dir_e.add_path(dir_path)
-dir_e.add_start(start_point)
-dir_e.add_goal(goal_point)
-dir_fig = go.Figure(data=dir_e.data)
-dir_fig.show()
+# dir_e = Environment('directed rrt', bounds=environment_bounds)
 
 
-# # plot
-# plot = Plot("rrt_3d_with_random_obstacles")
-# plot.plot_tree(X, rrt.trees)
-# if path is not None:
-#     plot.plot_path(X, path)
-# plot.plot_obstacles(X, Obstacles)
-# plot.plot_start(X, x_init)
-# plot.plot_goal(X, x_goal)
-# plot.draw(auto_open=True)
+# dir_path, dir_lines, dir_rrt_time = directed_rrt(environment_bounds, start_point, radius, goal_point)
+# for dline in dir_lines:
+#     dir_e.add_line(dline)
+
+# dir_e_title = "Directed RRT (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(0.05, len(dir_path), dir_rrt_time)
+# dir_e.add_path(dir_path)
+# dir_e.add_start(start_point)
+# dir_e.add_goal(goal_point)
+# dir_fig = go.Figure(data=dir_e.data)
+# dir_fig.update_layout(
+#     title=dir_e_title,
+#     font_family="Courier New",
+#     font_color="blue",
+#     title_font_family="Times New Roman",
+#     title_font_color="red",
+#     legend_title_font_color="green"
+# )
+# dir_fig.show()
+
+#####################################################################
+################################ RRT* ###############################
+#####################################################################
+
+star_e = Environment('directed rrt', bounds=environment_bounds)
+
+
+star_path, star_lines, star_rrt_time = rrt_star(environment_bounds, start_point, radius, goal_point)
+for dline in star_lines:
+    star_e.add_line(dline)
+
+star_e_title = "RRT* (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(0.05, len(star_path), star_rrt_time)
+star_e.add_path(dir_path)
+star_e.add_start(start_point)
+star_e.add_goal(goal_point)
+star_fig = go.Figure(data=dir_e.data)
+star_fig.update_layout(
+    title=star_e_title,
+    font_family="Courier New",
+    font_color="blue",
+    title_font_family="Times New Roman",
+    title_font_color="red",
+    legend_title_font_color="green"
+)
+star_fig.show()
+
+#####################################################################
+####################### Preftecly-Directed RRT ######################
+#####################################################################
+
+# dir_e = Environment('directed rrt', bounds=environment_bounds)
+
+
+# dir_path, dir_lines, dir_rrt_time = directed_rrt(environment_bounds, start_point, radius, goal_point, prob_sample_goal=1.0)
+# for dline in dir_lines:
+#     dir_e.add_line(dline)
+
+# dir_e_title = "Perfectly-Directed RRT (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(1.0, len(dir_path), dir_rrt_time)
+# dir_e.add_path(dir_path)
+# dir_e.add_start(start_point)
+# dir_e.add_goal(goal_point)
+# dir_fig = go.Figure(data=dir_e.data)
+# dir_fig.update_layout(
+#     title=dir_e_title,
+#     font_family="Courier New",
+#     font_color="blue",
+#     title_font_family="Times New Roman",
+#     title_font_color="red",
+#     legend_title_font_color="green"
+# )
+# dir_fig.show()
