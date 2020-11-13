@@ -156,10 +156,10 @@ def rrt(bounds, start_point, radius, goal_point, time_out=False):
 #####################################################################
 
 # def rrt(bounds, environment, start_point, radius, goal_point):
-def directed_rrt(bounds, start_point, radius, goal_point, steps_between_goal_samples=10, time_out=False):
+def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
     """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
     start_t = time.time()
-    extend_length = .75
+    extend_length = 1
     root = Node(start_point)
 
     lines_to_display = list()
@@ -170,7 +170,7 @@ def directed_rrt(bounds, start_point, radius, goal_point, steps_between_goal_sam
 
         steps += 1
 
-        if (steps % steps_between_goal_samples) == 0:
+        if np.random.rand() < prob_sample_goal:
             ran_loc = goal_point
         else:
             # Randomly select a new node to add to the graph
@@ -322,38 +322,39 @@ class Environment:
         """
         py.offline.plot(self.fig, filename=self.filename, auto_open=auto_open)
 
-environment_bounds = (0, 0, 0, 11, 11, 11)
+environment_bounds = (0, 0, 0, 15, 15, 15)
 start_point = (0, 0, 0)  # starting location
 goal_point = (10, 10, 10)  # goal location
 radius = 3 # radius of robot moving (used in collision detection)
 
 
-# path, lines = rrt(environment_bounds, start_point, radius, goal_point, True)
-path, lines = rrt(environment_bounds, start_point, radius, goal_point)
+path, lines = rrt(environment_bounds, start_point, radius, goal_point, True)
+# path, lines = rrt(environment_bounds, start_point, radius, goal_point)
 
 e = Environment('rrt', bounds=environment_bounds)
 
-for line in lines:
-    e.add_line(line)
+# for line in lines:
+#     e.add_line(line)
 
-e.add_path(path)
-e.add_start(start_point)
-e.add_goal(goal_point)
+# e.add_path(path)
+# e.add_start(start_point)
+# e.add_goal(goal_point)
 
-fig = go.Figure(data=e.data)
+# fig = go.Figure(data=e.data)
 
-fig.show()
+# fig.show()
 
 
-# dir_path, dir_lines = directed_rrt(environment_bounds, start_point, radius, goal_point, steps_between_goal_samples=10)
-# for dline in dir_lines:
-#     dir_e.add_line(line)
-# dir_e = Environment('directed rrt', bounds=environment_bounds)
-# dir_e.add_path(dir_path)
-# dir_e.add_start(start_point)
-# dir_e.add_goal(goal_point)
-# dir_fig = go.Figure(data=dir_e.data)
-# dir_fig.show()
+dir_e = Environment('directed rrt', bounds=environment_bounds)
+
+dir_path, dir_lines = directed_rrt(environment_bounds, start_point, radius, goal_point)
+for dline in dir_lines:
+    dir_e.add_line(dline)
+dir_e.add_path(dir_path)
+dir_e.add_start(start_point)
+dir_e.add_goal(goal_point)
+dir_fig = go.Figure(data=dir_e.data)
+dir_fig.show()
 
 
 # # plot
