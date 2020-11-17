@@ -79,7 +79,7 @@ star_e = Environment('rrt*', bounds=environment_bounds)
 np.random.seed(50)
 
 prob_check_sol = 0.01
-max_it = 1000
+max_it = 500
 check_neighbor_radius = 3
 
 star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(environment_bounds, start_point, radius, goal_point, max_it, check_neighbor_radius)
@@ -112,8 +112,8 @@ star_fig.update_layout(
     title_font_color="red",
     legend_title_font_color="green"
 )
-py.plot(star_fig, filename=star_e_title, auto_open=True)
-# star_fig.show()
+# py.plot(star_fig, filename=star_e_title, auto_open=True)
+star_fig.show()
 
 #####################################################################
 ####################### Perftecly-Directed RRT ######################
