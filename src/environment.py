@@ -1,5 +1,8 @@
 import plotly as py
 
+from utils import *
+from collision import *
+from rtree import index 
 from plotly import graph_objs as go
 
 #####################################################################
@@ -7,7 +10,7 @@ from plotly import graph_objs as go
 #####################################################################
 
 class Environment:
-    def __init__(self, filename='rrt3d', bounds=None):
+    def __init__(self, filename='rrt3d', bounds=None, obstacles=None):
         ''' 
         @param bounds = 6-element tuple (minx, miny, minz, maxx, maxy, maxz)
         '''
@@ -24,6 +27,24 @@ class Environment:
         self.fig = {'data': self.data,
                     'layout': self.layout}
 
+        properties = index.Property()
+        properties.dimension = 3
+        if obstacles is None:
+            self.obstacles = index.Index(interleaved=True, properties=properties)
+        else:
+            self.add_obstacles(obstacles)
+            self.obstacles = index.Index(ob_gen(obstacles), interleaved=True, properties=properties)
+
+    def is_point_obstacle_free(self, point):
+        return self.obstacles.count(point) == 0
+
+    def is_line_obstacle_free(self, x_near, x_new, max_d):
+        points_along_line = extract_points_from_line(x_near, x_new, max_d)
+        for point in points_along_line:
+            if not self.is_point_obstacle_free(point):
+                return False
+        return True
+
     def add_obstacles(self, obstacles):
         ''' Assumes obstacle is a '''
 
@@ -35,7 +56,7 @@ class Environment:
                 i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
                 j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
                 k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
-                color='purple',
+                color='rgba(178, 34, 34, 1.0)',
                 opacity=0.70
             )
             self.data.append(obs)
@@ -59,7 +80,8 @@ class Environment:
             x.append(point[0])
             y.append(point[1])
             z.append(point[2])
-        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
+        # trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
+        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 1.0)', width=4), mode="lines")
         self.data.append(trace)       
 
     def add_start(self, start_point):

@@ -13,6 +13,16 @@ start_point = (0, 0, 0)  # starting location
 goal_point = (10, 10, 10)  # goal location
 radius = 3 # radius of robot moving (used in collision detection)
 
+scattered_small_boxes = np.array(
+    [(2, 2, 2, 4, 4, 4), (2, 2, 6, 4, 4, 8), (2, 6, 2, 4, 8, 4), (6, 6, 2, 8, 8, 4),
+     (6, 2, 2, 8, 4, 4), (6, 2, 6, 8, 4, 8), (2, 6, 6, 4, 8, 8), (6, 6, 6, 8, 8, 8)])
+
+one_big_box = np.array([(2.75, 2.75, 2.75, 7.75, 7.75, 7.75)])
+
+wall_with_gap = np.array([(1.5, 5, 1, 2.5, 10, 10), (1.5, 1, 1, 2.5, 4, 10)])
+
+obs = scattered_small_boxes
+
 
 #####################################################################
 ############################# Plain RRT #############################
@@ -74,15 +84,15 @@ radius = 3 # radius of robot moving (used in collision detection)
 ################################ RRT* ###############################
 #####################################################################
 
-star_e = Environment('rrt*', bounds=environment_bounds)
+star_e = Environment(filename='rrt*', bounds=environment_bounds, obstacles=obs)
 
 np.random.seed(50)
 
 prob_check_sol = 0.01
-max_it = 500
+max_it = 250
 check_neighbor_radius = 3
 
-star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(environment_bounds, start_point, radius, goal_point, max_it, check_neighbor_radius)
+star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(star_e, start_point, radius, goal_point, max_it, check_neighbor_radius)
 
 '''
 Title follows the form:

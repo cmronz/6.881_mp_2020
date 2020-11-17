@@ -8,6 +8,18 @@ def dist_between_np_array_points(p1, p2):
     ''' Calculates Euclidean distance between two points, p2 & p1 '''
     return np.linalg.norm(p2 - p1)
 
+def extract_points_from_line(start, end, max_distance):
+    ''' extract points increments of step_size away from eachother along the line from start to end '''
+    points = list()
+    distance = dist_between_points(start, end)
+    num_points = int(np.ceil(distance / max_distance))
+    if (num_points - 1) > 0:
+        step_size = distance / (num_points - 1)
+        for i in range(num_points):
+            points.append(steer(start, end, step_size * i))
+    return points
+
+
 def close_enough(p1, p2, epsilon):
     ''' checks if p2 is withing epsilon on p1 '''
     return dist_between_points(p1, p2) <= epsilon
