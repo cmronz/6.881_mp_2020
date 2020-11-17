@@ -46,53 +46,67 @@ radius = 3 # radius of robot moving (used in collision detection)
 ############################ Directed RRT ###########################
 #####################################################################
 
-dir_e = Environment('directed rrt', bounds=environment_bounds)
+# dir_e = Environment('directed rrt', bounds=environment_bounds)
 
 
-dir_path, dir_lines, dir_rrt_time = directed_rrt(environment_bounds, start_point, radius, goal_point)
-for dline in dir_lines:
-    dir_e.add_line(dline)
+# dir_path, dir_lines, dir_rrt_time = directed_rrt(environment_bounds, start_point, radius, goal_point)
+# for dline in dir_lines:
+#     dir_e.add_line(dline)
 
-dir_e_title = "Directed RRT (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(0.05, len(dir_path), dir_rrt_time)
-dir_e.add_path(dir_path)
-dir_e.add_start(start_point)
-dir_e.add_goal(goal_point)
-dir_fig = go.Figure(data=dir_e.data)
-dir_fig.update_layout(
-    title=dir_e_title,
-    font_family="Courier New",
-    font_color="blue",
-    title_font_family="Times New Roman",
-    title_font_color="red",
-    legend_title_font_color="green"
-)
-dir_fig.show()
-
-#####################################################################
-################################ RRT* ###############################
-#####################################################################
-
-# star_e = Environment('rrt*', bounds=environment_bounds)
-
-
-# star_path, star_lines, star_rrt_time = rrt_star(environment_bounds, start_point, radius, goal_point)
-# for dline in star_lines:
-#     star_e.add_line(dline)
-
-# star_e_title = "RRT* (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(0.05, len(star_path), star_rrt_time)
-# star_e.add_path(dir_path)
-# star_e.add_start(start_point)
-# star_e.add_goal(goal_point)
-# star_fig = go.Figure(data=dir_e.data)
-# star_fig.update_layout(
-#     title=star_e_title,
+# dir_e_title = "Directed RRT (Prob Goal Sample = {}) Path Length = {}, Time to Complete = {} sec".format(0.05, len(dir_path), dir_rrt_time)
+# dir_e.add_path(dir_path)
+# dir_e.add_start(start_point)
+# dir_e.add_goal(goal_point)
+# dir_fig = go.Figure(data=dir_e.data)
+# dir_fig.update_layout(
+#     title=dir_e_title,
 #     font_family="Courier New",
 #     font_color="blue",
 #     title_font_family="Times New Roman",
 #     title_font_color="red",
 #     legend_title_font_color="green"
 # )
-# star_fig.show()
+# dir_fig.show()
+
+#####################################################################
+################################ RRT* ###############################
+#####################################################################
+
+star_e = Environment('rrt*', bounds=environment_bounds)
+
+np.random.seed(50)
+
+prob_check_sol = 0.01
+max_it = 5000
+
+star_path, star_lines, star_rrt_time, star_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol, max_iters=max_it)
+
+# star_cost = np.inf
+# star_path = None
+# star_rrt_time = None
+# for i in range(50):
+#     best_path, star_lines, best_time, min_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol)
+#     if min_cost < star_cost:
+#         star_cost = min_cost
+#         star_path = best_path
+#         star_rrt_time = best_time
+# for dline in star_lines:
+#     star_e.add_line(dline)
+
+star_e_title = "RRT* (Prob Goal Sample = {}) Max Iterartions = {}, Path Length = {}, Time to Complete = {} sec".format(prob_check_sol, max_it, star_cost, star_rrt_time)
+star_e.add_path(star_path)
+star_e.add_start(start_point)
+star_e.add_goal(goal_point)
+star_fig = go.Figure(data=star_e.data)
+star_fig.update_layout(
+    title=star_e_title,
+    font_family="Courier New",
+    font_color="blue",
+    title_font_family="Times New Roman",
+    title_font_color="red",
+    legend_title_font_color="green"
+)
+star_fig.show()
 
 #####################################################################
 ####################### Perftecly-Directed RRT ######################
