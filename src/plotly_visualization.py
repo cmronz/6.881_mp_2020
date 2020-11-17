@@ -77,23 +77,17 @@ star_e = Environment('rrt*', bounds=environment_bounds)
 np.random.seed(50)
 
 prob_check_sol = 0.01
-max_it = 5000
+max_it = 500
+check_neighbor_radius = 3
 
-star_path, star_lines, star_rrt_time, star_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol, max_iters=max_it)
+star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(environment_bounds, start_point, radius, goal_point, max_it, check_neighbor_radius)
 
-# star_cost = np.inf
-# star_path = None
-# star_rrt_time = None
-# for i in range(50):
-#     best_path, star_lines, best_time, min_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol)
-#     if min_cost < star_cost:
-#         star_cost = min_cost
-#         star_path = best_path
-#         star_rrt_time = best_time
-# for dline in star_lines:
-#     star_e.add_line(dline)
+star_e_title = "RRT* (Max Iterartions = {}, Neighbor Radius = {}), Path Length = {}, Distance to Goal From Last Node = {}, Time to Complete = {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
 
-star_e_title = "RRT* (Prob Goal Sample = {}) Max Iterartions = {}, Path Length = {}, Time to Complete = {} sec".format(prob_check_sol, max_it, star_cost, star_rrt_time)
+full_tree = form_full_tree_with_piecewise_pairings(root_node)
+for segment in full_tree:
+    star_e.add_line(segment)
+
 star_e.add_path(star_path)
 star_e.add_start(start_point)
 star_e.add_goal(goal_point)
@@ -107,6 +101,18 @@ star_fig.update_layout(
     legend_title_font_color="green"
 )
 star_fig.show()
+
+# star_cost = np.inf
+# star_path = None
+# star_rrt_time = None
+# for i in range(50):
+#     best_path, star_lines, best_time, min_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol)
+#     if min_cost < star_cost:
+#         star_cost = min_cost
+#         star_path = best_path
+#         star_rrt_time = best_time
+# for dline in star_lines:
+#     star_e.add_line(dline)
 
 #####################################################################
 ####################### Perftecly-Directed RRT ######################

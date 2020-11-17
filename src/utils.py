@@ -4,6 +4,10 @@ def dist_between_points(p1, p2):
     ''' Calculates Euclidean distance between two points, p2 & p1 '''
     return np.linalg.norm(np.array(p2) - np.array(p1))
 
+def dist_between_np_array_points(p1, p2):
+    ''' Calculates Euclidean distance between two points, p2 & p1 '''
+    return np.linalg.norm(p2 - p1)
+
 def close_enough(p1, p2, epsilon):
     ''' checks if p2 is withing epsilon on p1 '''
     return dist_between_points(p1, p2) <= epsilon
@@ -11,43 +15,71 @@ def close_enough(p1, p2, epsilon):
 
 def find_nearest_neighbor(xyz, nodes):
     ''' Returns the node in nodes (iterable) closest to location xy '''
-    def dist(point, node):
-        dif = node.xyz - point
-        return dif.dot(dif)
     point = np.array(xyz)
     mind = np.inf
     nn = None
     for n in nodes:
-        d = dist(point, n)
+        d = dist_between_np_array_points(n.xyz, point)
         if d < mind:
             mind = d
             nn = n
     return nn
 
+def find_nearest_neighbor_with_distance(xyz, nodes):
+    ''' Returns the node in nodes (iterable) closest to location xy '''
+    point = np.array(xyz)
+    mind = np.inf
+    nn = None
+    for n in nodes:
+        d = dist_between_np_array_points(n.xyz, point)
+        if d < mind:
+            mind = d
+            nn = n
+    return nn, mind
+
+def nn_insertion_sort(nns, new_neighbor):
+    cost = new_neighbor[1]
+    ind = len(nns)
+    for i in range(len(nns)):
+        if cost < nns[i][1]:
+            ind = i
+            break
+    nns.insert(ind, new_neighbor)
 
 def find_nearest_neighbors_within_radius(xyz, nodes, radius):
     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
-    def dist(point, node):
-        dif = node.xyz - point
-        return dif.dot(dif)
     point = np.array(xyz)
-
     nn = list()
     for n in nodes:
-        d = dist(point, n)
+        d = dist_between_np_array_points(n.xyz, xyz)
         if d < radius:
-            cost = path_cost(n) + d
+            cost = n.cost #path_cost(n) + d
             nn.append((n, cost))
     nn.sort(key = lambda k: k[1])
     return nn
 
-def path_cost(node):
-    ''' Returns the path incurred by traversing from the root node to the node passed in '''
-    if node.parent is None:
-        return 0
-    else:
-        return node.parent.cost + dist_between_points(node.parent.xyz, node.xyz)
+# def find_nearest_neighbors_within_radius_2(xyz, nodes, radius):
+#     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
+#     point = np.array(xyz)
+#     nn = list()
+#     for n in nodes:
+#         d = dist_between_np_array_points(n.xyz, xyz)
+#         if d < radius:
+#             cost = n.cost + d
+#             nn.append((n, cost))
+#     nn.sort(key = lambda k: k[1])
+#     return nn
 
+def find_nearest_neighbors_within_radius_distance_to_point_included(xyz, nodes, radius):
+    ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
+    point = np.array(xyz)
+    nn = list()
+    for n in nodes:
+        d = dist_between_np_array_points(n.xyz, xyz)
+        if d < radius:
+            cost = n.cost + d
+            nn_insertion_sort(nn, (n, cost))
+    return nn
 
 def sample_cube(bounds):
     ''' Returns a random point (x, y, z) s.t. minx < x < maxx, miny < y < maxy, minz < z < maxz, given bounds=[minx, miny, minz, maxx, maxy, maxz] '''
@@ -63,25 +95,9 @@ def steer(start, goal, d):
     steered_point = start + u * d
     return tuple(steered_point)
 
-def add_to_display_dictionary(d, parent_xyz, child_loc):
-    parent_loc = tuple(parent_xyz)
-    if parent_loc not in d:
-        d[parent_loc] = set()
-    d[parent_loc].add(child_loc)
-    return
-
-def remove_from_display_dictionary(d, node):
-    parent_loc = tuple(node.parent.xyz)
-    node_loc = tuple(node.xyz)
-    d[parent_loc].remove(node_loc)
-    return
-
-def form_parent_child_tuples(node_dict):
-    display_lines = list()
-    for key in node_dict:
-        for child in node_dict[key]:
-            display_lines.append((key.xyz, child.xyz))
-    return display_lines
-
-
-
+def form_full_tree_with_piecewise_pairings(root_node):
+    all_lines = list()
+    for child in root_node.children:
+        all_lines.append((root_node.xyz, child.xyz))
+        all_lines.extend(form_full_tree_with_piecewise_pairings(child))
+    return all_lines
