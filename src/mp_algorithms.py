@@ -140,12 +140,16 @@ def rrt_star_iter_bound(bounds, start_point, radius, goal_point, max_iters, nn_r
         # Get the line going from nearest vertex in G to random point, making our New Point
         new_point = steer(nearest_neighbor.xyz, ran_loc, 1)
 
+
+        best_neighbor_and_cost = (nearest_neighbor, 1 + nearest_neighbor.cost)
+
         ''' Still Need to Check for Collisions '''
 
         neighbors_within_radius = find_nearest_neighbors_within_radius_distance_to_point_included(new_point, all_nodes, nn_rad)
 
-        # This is a tuple of (parent_node_of_new_point, shortest_distance_from_graph_to_new_point)
-        best_neighbor_and_cost = neighbors_within_radius[0]
+        if neighbors_within_radius:
+            # This is a tuple of (parent_node_of_new_point, shortest_distance_from_graph_to_new_point)
+            best_neighbor_and_cost = neighbors_within_radius[0]
             
         # Add this to the graph
         new_node = Node(new_point, parent=best_neighbor_and_cost[0], cost=best_neighbor_and_cost[1])

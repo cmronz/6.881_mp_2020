@@ -1,3 +1,5 @@
+import chart_studio.plotly as py
+
 from plotly import graph_objs as go
 from environment import Environment
 from mp_algorithms import *
@@ -77,16 +79,26 @@ star_e = Environment('rrt*', bounds=environment_bounds)
 np.random.seed(50)
 
 prob_check_sol = 0.01
-max_it = 500
+max_it = 1000
 check_neighbor_radius = 3
 
 star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(environment_bounds, start_point, radius, goal_point, max_it, check_neighbor_radius)
 
-star_e_title = "RRT* (Max Iterartions = {}, Neighbor Radius = {}), Path Length = {}, Distance to Goal From Last Node = {}, Time to Complete = {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
+'''
+Title follows the form:
+'RRT* MI ( {Max Iterations}, {Neighbor Checking Radius}, 
+           {True Path Cost}, {Distance from Last Node in Path to Goal} ) 
+        in {Total Time for Algorithm to Return Path} sec'
+'''
+star_e_title = "RRT* MI ({}, {}, {}, {}) in {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
 
-full_tree = form_full_tree_with_piecewise_pairings(root_node)
-for segment in full_tree:
-    star_e.add_line(segment)
+# print("Last Node: {}".format(star_path[-1]))
+
+leaves = find_leaf_nodes(root_node)
+
+paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
+for lp in paths_to_leaves:
+    star_e.add_line(lp)
 
 star_e.add_path(star_path)
 star_e.add_start(start_point)
@@ -100,19 +112,8 @@ star_fig.update_layout(
     title_font_color="red",
     legend_title_font_color="green"
 )
-star_fig.show()
-
-# star_cost = np.inf
-# star_path = None
-# star_rrt_time = None
-# for i in range(50):
-#     best_path, star_lines, best_time, min_cost = rrt_star(environment_bounds, start_point, radius, goal_point, solution_check_prob=prob_check_sol)
-#     if min_cost < star_cost:
-#         star_cost = min_cost
-#         star_path = best_path
-#         star_rrt_time = best_time
-# for dline in star_lines:
-#     star_e.add_line(dline)
+py.plot(star_fig, filename=star_e_title, auto_open=True)
+# star_fig.show()
 
 #####################################################################
 ####################### Perftecly-Directed RRT ######################

@@ -95,9 +95,18 @@ def steer(start, goal, d):
     steered_point = start + u * d
     return tuple(steered_point)
 
-def form_full_tree_with_piecewise_pairings(root_node):
+def form_full_tree_with_piecewise_pairings(node):
     all_lines = list()
-    for child in root_node.children:
-        all_lines.append((root_node.xyz, child.xyz))
+    for child in node.children:
+        all_lines.append((node.xyz, child.xyz))
         all_lines.extend(form_full_tree_with_piecewise_pairings(child))
     return all_lines
+
+def find_leaf_nodes(node):
+    leaves = list()
+    for child in node.children:
+        if not child.children:
+            leaves.append(child)
+        else:
+            leaves.extend(find_leaf_nodes(child))
+    return leaves

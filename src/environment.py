@@ -1,4 +1,5 @@
 import plotly as py
+
 from plotly import graph_objs as go
 
 #####################################################################
@@ -86,6 +87,19 @@ class Environment:
             mode="markers"
         )
         self.data.append(trace)
+
+    # def add_goal(self, goal_point):
+    #     trace = go.Scatter3d(
+    #         x=[goal_point[0]],
+    #         y=[goal_point[1]],
+    #         z=[goal_point[2]],
+    #         line=dict(
+    #             color="green",
+    #             width=10
+    #         ),
+    #         mode="markers"
+    #     )
+    #     self.data.append(trace)
 
 
     # Still Need to modify RRT/environemnt to use RTree for collision detection and tree management
