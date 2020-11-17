@@ -59,7 +59,7 @@ class Environment:
             x.append(point[0])
             y.append(point[1])
             z.append(point[2])
-        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color="darkblue", width=4), mode="lines")
+        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         self.data.append(trace)       
 
     def add_start(self, start_point):
@@ -88,7 +88,7 @@ class Environment:
         )
         self.data.append(trace)
 
-    # def add_goal(self, goal_point):
+    # def add_leaf(self, goal_point):
     #     trace = go.Scatter3d(
     #         x=[goal_point[0]],
     #         y=[goal_point[1]],
