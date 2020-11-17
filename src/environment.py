@@ -51,7 +51,7 @@ class Environment:
         self.data.append(trace)
 
     def add_line(self, endpoints):
-        ''' path is a tuple of 2 (x, y, z) points '''
+        ''' adds a line to the environment '''
         
         x, y, z = [], [], []
         for point in endpoints:

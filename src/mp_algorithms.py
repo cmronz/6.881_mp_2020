@@ -10,7 +10,7 @@ from node import Node
 
 # def rrt(bounds, environment, start_point, radius, goal_point):
 def rrt(bounds, start_point, radius, goal_point, time_out=False):
-    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    ''' Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region. '''
     start_t = time.time()
     extend_length = .75
     root = Node(start_point)
@@ -67,7 +67,7 @@ def rrt(bounds, start_point, radius, goal_point, time_out=False):
 
 # def rrt(bounds, environment, start_point, radius, goal_point):
 def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
-    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    ''' Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region. '''
     start_t = time.time()
     extend_length = 1
     root = Node(start_point)
@@ -127,7 +127,7 @@ def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05,
 
 # def rrt(bounds, environment, start_point, radius, goal_point):
 def rrt_star(bounds, start_point, radius, goal_point, prob_sample_goal=0.05, time_out=False):
-    """Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region."""
+    ''' Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region. '''
     start_t = time.time()
     extend_length = 1
     root = Node(start_point)
