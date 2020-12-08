@@ -22,12 +22,13 @@ def create_obstacle_boundary(obstacle, obstacle_boundary_value):
     return tuple(boundary)
 
 class Environment:
-    def __init__(self, filename='rrt3d', bounds=None, obstacles=None, obstacle_colors=None, obstacle_boundaries=False, obstacle_boundary_value=0.0):
+    def __init__(self, filename='rrt3d', bounds=None, obstacles=None, obstacle_colors=None, obstacle_boundaries=False, obstacle_boundary_value=0.0, rotation=None):
         ''' 
         @param bounds = 6-element tuple (minx, miny, minz, maxx, maxy, maxz)
         '''
         self.filename = 'visuals/' + filename + '.html'
         self.bounds = bounds
+        self.rotation = rotation
 
         # holds obstacles/paths to be plotted 
         self.data = []
@@ -58,7 +59,10 @@ class Environment:
                 self.obstacles = index.Index(ob_gen(obstacles), interleaved=True, properties=properties)
 
     def is_point_obstacle_free(self, point):
-        return self.obstacles.count(point) == 0
+        if not self.obstacles.count(point) == 0:
+            return False
+
+        return not self.creates_singularity(point)
 
     def is_line_obstacle_free(self, x_near, x_new, max_d):
         points_along_line = extract_points_from_line(x_near, x_new, max_d)
@@ -203,3 +207,11 @@ class Environment:
         Render the plot to a file
         """
         py.offline.plot(self.fig, filename=self.filename, auto_open=auto_open)
+
+    def creates_singularity(self, xyz):
+        try: # hack for local run without pydrake installed
+            ik_solver = IKSolver()
+            q, optimal = ik_solver.solve(RigidTransform(p=np.array(xyz), R=self.rotation), q_guess=q_prev)
+            return not optimal
+        except:
+            return False
