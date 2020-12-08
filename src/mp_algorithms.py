@@ -170,6 +170,7 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
         min_cost = nearest_neighbor.cost + extend_length
         min_node = nearest_neighbor
 
+        # Let's add this node along the minimum-cost-path to reach it from the nodes already in our tree
         for neighbor in neighbors_within_radius:
 
             cost_from_neighbor_to_new_node = neighbor[1] - neighbor[0].cost
