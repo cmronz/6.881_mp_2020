@@ -5,6 +5,9 @@ from environment import *
 from utils import *
 from node import Node
 
+# DeleteME
+import math
+
 #####################################################################
 ############################# Plain RRT #############################
 #####################################################################
@@ -54,12 +57,12 @@ def rrt(environment, start_point, goal_point, max_iters, point_extraction_distan
         # check if we are with 'cutoff_distance' reach of the end goal
         if close_enough(new_point, goal_point, cutoff_distance):
             path_to_goal = [n for n in node.path]
-            return path_to_goal, len(path_to_goal) * extend_length, dist_between_points(new_point, goal_point), root, time.time() - start_t
+            return path_to_goal, len(path_to_goal) * extend_length, dist_between_points(new_point, goal_point), root, time.time() - start_t, steps
 
         if steps >= max_iters:
             nearest_neighbor_to_goal, nn_d_to_goal = find_nearest_neighbor_with_distance(goal_point, [d for d in root.all_descendents])
             path_to_goal = [n for n in nearest_neighbor_to_goal.path]
-            return path_to_goal, len(path_to_goal) * extend_length, nn_d_to_goal, root, time.time() - start_t
+            return path_to_goal, len(path_to_goal) * extend_length, nn_d_to_goal, root, time.time() - start_t, steps
 
 #####################################################################
 ############################ Directed RRT ###########################
@@ -114,18 +117,18 @@ def directed_rrt(environment, start_point, goal_point, max_iters, point_extracti
         # check if we are with 'cutoff_distance' reach of the end goal
         if close_enough(new_point, goal_point, cutoff_distance):
             path_to_goal = [n for n in node.path]
-            return path_to_goal, len(path_to_goal) * extend_length, dist_between_points(new_point, goal_point), root, time.time() - start_t
+            return path_to_goal, len(path_to_goal) * extend_length, dist_between_points(new_point, goal_point), root, time.time() - start_t, steps
 
         if steps >= max_iters:
             nearest_neighbor_to_goal, nn_d_to_goal = find_nearest_neighbor_with_distance(goal_point, [d for d in root.all_descendents])
             path_to_goal = [n for n in nearest_neighbor_to_goal.path]
-            return path_to_goal, len(path_to_goal) * extend_length, nn_d_to_goal, root, time.time() - start_t
+            return path_to_goal, len(path_to_goal) * extend_length, nn_d_to_goal, root, time.time() - start_t, steps
 
 #####################################################################
 ################################ RRT* ###############################
 #####################################################################
 
-def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad, point_extraction_distance, extend_length=1):
+def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad, point_extraction_distance, prob_sample_goal=0.0, extend_length=1):
     ''' Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region. '''
     start_t = time.time()
     root = Node(start_point)
@@ -134,12 +137,13 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
     
     while True:
 
-        # Randomly select a new node to add to the graph
-        ran_loc = sample_cube(environment.bounds)
 
-        # Make sure we don't intersect with any obstacles
-        if not environment.is_point_obstacle_free(ran_loc):
-            continue
+        # With probability specified at function call, sample the goal to 'direct' the search
+        if np.random.rand() < prob_sample_goal:
+            ran_loc = goal_point
+        else:
+            # Randomly select a new node to add to the graph
+            ran_loc = sample_cube(environment.bounds)
         
         all_nodes = [d for d in root.all_descendents]
 
@@ -161,22 +165,39 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
 
         best_neighbor_and_cost = (nearest_neighbor, extend_length + nearest_neighbor.cost)
 
-        neighbors_within_radius = find_nearest_neighbors_within_radius_distance_to_point_included(new_point, all_nodes, nn_rad)
+        # This is a list of tuples of (reference to a node that is with nn_rad distance of the new point, 
+        # and the Cost(neighbor node) + Cost(line from this neighbor node to new point))
+        neighbors_within_radius = find_nearest_neighbors_within_radius(new_point, all_nodes, nn_rad)
 
-        if neighbors_within_radius:
-            # This is a tuple of (parent_node_of_new_point, shortest_distance_from_graph_to_new_point)
-            best_neighbor_and_cost = neighbors_within_radius[0]
-            
-        # Add this to the graph
-        new_node = Node(new_point, parent=best_neighbor_and_cost[0], cost=best_neighbor_and_cost[1])
-        best_neighbor_and_cost[0].children.append(new_node)
+        min_cost = nearest_neighbor.cost
+        min_node = nearest_neighbor
 
-        for neighbor in neighbors_within_radius[1:]:
+        for neighbor in neighbors_within_radius:
+
+            cost_from_neighbor_to_new_node = neighbor[1]
 
             # If it is shorter path distance from new point, to one of the near neighbors...
-            if (best_neighbor_and_cost[1] + neighbor[1]) < (neighbor[0].cost * 2):
+            if cost_from_neighbor_to_new_node < min_cost:
 
                 if environment.is_line_obstacle_free(new_point, neighbor[0].xyz, point_extraction_distance):
+
+                    # We can assign a new min cost and min node
+                    min_cost = cost_from_neighbor_to_new_node
+                    min_node = neighbor[0]
+            
+        # Add this new point to the graph along the minimum-cost path
+        new_node = Node(new_point, parent=min_node, cost=min_cost)
+        min_node.children.append(new_node)
+
+        # Now we can rewire the tree
+        for neighbor in neighbors_within_radius:
+
+            cost_from_new_node_to_nearby_neighbor = new_node.cost + dist_between_points(new_node.xyz, neighbor[0].xyz)
+
+            # If it is shorter path distance from new point, to one of the near neighbors...
+            if cost_from_new_node_to_nearby_neighbor < neighbor[0].cost:
+
+                if environment.is_line_obstacle_free(new_node.xyz, neighbor[0].xyz, point_extraction_distance):
 
                     # remove this neighbor from their original parent's children list
                     neighbor[0].parent.children.remove(neighbor[0])
@@ -185,10 +206,16 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
                     new_node.children.append(neighbor[0])
 
                     # Set the cost of the neighbor to now reflect the shorter distance through our newly formed node
-                    neighbor[0].cost = best_neighbor_and_cost[1] + neighbor[1] - neighbor[0].cost
+                    neighbor[0].cost = cost_from_new_node_to_nearby_neighbor
 
         if steps >= max_iters:
             nearest_neighbor_to_goal, nn_d_to_goal = find_nearest_neighbor_with_distance(goal_point, [d for d in root.all_descendents])
             path_to_goal = [n for n in nearest_neighbor_to_goal.path]
-            return path_to_goal, nearest_neighbor_to_goal.cost, nn_d_to_goal, root, time.time() - start_t
+            return path_to_goal, nearest_neighbor_to_goal.cost, nn_d_to_goal, root, time.time() - start_t, steps
+
+
+
+
+
+
 

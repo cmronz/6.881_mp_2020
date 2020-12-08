@@ -23,11 +23,7 @@ one_big_box = np.array([(2.75, 2.75, 2.75, 7.75, 7.75, 7.75)])
 
 wall_with_gap = np.array([(1.5, 5, 1, 2.5, 10, 10), (1.5, 1, 1, 2.5, 4, 10)])
 
-cabinet = np.array([(.5, .25, 0, 1.05, .45, .75)])
-
-kuka = np.array([(-.1, -.1, 0, .1, .1, .75)])
-
-obs = cabinet
+obs = scattered_small_boxes
 
 
 #####################################################################
@@ -135,26 +131,40 @@ obs = cabinet
 ################################ TEST ###############################
 #####################################################################
 
-test_bounds = (-.3, -0.1, -0.1, 1.1, 0.75, 0.8)
-rrt_e = Environment(filename='plain rrt', bounds=test_bounds, obstacles=obs)
-dir_rrt_e = Environment(filename='dir rrt', bounds=test_bounds, obstacles=obs)
-star_rrt_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=obs)
+RRT = True
+DRRT = True
+SRRT = True
+DSRRT = True
 
 np.random.seed(50)
 
-max_iters = 1000
-check_neighbor_radius = 0.15 
+cabinet = np.array([(.5, .25, 0, 1.05, .45, .75)])
+kuka = np.array([(-.1, -.1, 0, .1, .1, .75)])
+
+robot_vis_obs = cabinet
+
+test_bounds = (-.3, -0.1, -0.1, 1.1, 0.75, 0.8)
+rrt_e = Environment(filename='plain rrt', bounds=test_bounds, obstacles=robot_vis_obs)
+dir_rrt_e = Environment(filename='dir rrt', bounds=test_bounds, obstacles=robot_vis_obs)
+star_rrt_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=robot_vis_obs)
+d_star_rrt_e = Environment(filename='dir rrt*', bounds=test_bounds, obstacles=robot_vis_obs)
+
+
+max_iters = 1500
+check_neighbor_radius = 0.05 
 
 start_point = (0.7, 0.5, 0.5)
 goal_point = (0.5, 0, 0.65) 
 
 # point_extraction_distance
-PED = 0.1
-extend_length = 0.05
+PED = 0.025
+extending_length = 0.025
 
-cutoff_distance = 0.05
+cutoff_d = 0.05
 
-prob_to_sample_goal_in_directed_rrt = 0.05
+dir_goal_sample_prob = 0.05
+star_goal_sample_prob = 0.0
+d_star_goal_sample_prob = 0.5
 
 
 '''
@@ -166,87 +176,130 @@ Title follows the form:
 
 ##### PLAIN RRT #####
 
-rrt_path, path_cost, distance_from_goal, root_node, rrt_time = rrt(rrt_e, start_point, goal_point, max_iters, PED, extend_length, cutoff_distance)
+if RRT:
 
-title = "RRT (Iter={}, Cost={}, Distance={}) in {} sec".format(max_iters, path_cost, distance_from_goal, rrt_time)
+    rrt_path, path_cost, distance_from_goal, root_node, rrt_time, iters = rrt(rrt_e, start_point, goal_point, max_iters, PED, extend_length=extending_length, cutoff_distance=cutoff_d)
 
-leaves = find_leaf_nodes(root_node)
+    title = "RRT (Iter={}, Cost={}, Distance={}) in {} sec".format(iters, path_cost, distance_from_goal, rrt_time)
 
-paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
-for lp in paths_to_leaves:
-    rrt_e.add_line(lp)
-    # for node_on_path in lp:
-    	# rrt_e.add_search_space_node(node_on_path)
+    leaves = find_leaf_nodes(root_node)
 
-rrt_e.add_path(rrt_path)
+    paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
+    for lp in paths_to_leaves:
+        rrt_e.add_line(lp)
+        # for node_on_path in lp:
+            # rrt_e.add_search_space_node(node_on_path)
 
-rrt_e.add_start(start_point)
-rrt_e.add_goal(goal_point)
-fig = go.Figure(data=rrt_e.data)
-fig.update_layout(
-    title=title,
-    font_family="Courier New",
-    font_color="blue",
-    title_font_family="Times New Roman",
-    title_font_color="red",
-    legend_title_font_color="green"
-)
-fig.show()
+    rrt_e.add_path(rrt_path)
+
+    rrt_e.add_start(start_point)
+    rrt_e.add_goal(goal_point)
+    fig = go.Figure(data=rrt_e.data)
+    fig.update_layout(
+        title=title,
+        font_family="Courier New",
+        font_color="blue",
+        title_font_family="Times New Roman",
+        title_font_color="red",
+        legend_title_font_color="green"
+    )
+    fig.show()
 
 ##### DIRECTED RRT #####
 
-dir_rrt_path, dir_path_cost, dir_distance_from_goal, dir_root_node, dir_rrt_time = directed_rrt(dir_rrt_e, start_point, goal_point, max_iters, PED, prob_to_sample_goal_in_directed_rrt, extend_length, cutoff_distance)
+if DRRT:
 
-dir_title = "Dir-RRT(Iter={}, p_goal_sampl={}, Cost={}, Distance={}) in {} sec".format(max_iters, prob_to_sample_goal_in_directed_rrt, dir_path_cost, dir_distance_from_goal, dir_rrt_time)
+    dir_rrt_path, dir_path_cost, dir_distance_from_goal, dir_root_node, dir_rrt_time, dir_itters = directed_rrt(dir_rrt_e, start_point, goal_point, max_iters, PED, prob_sample_goal=dir_goal_sample_prob, extend_length=extending_length, cutoff_distance=cutoff_d)
 
-dir_leaves = find_leaf_nodes(dir_root_node)
+    dir_title = "Dir-RRT(Iter={}, p_g_samp={}, Cost={}, Distance={}) in {} sec".format(dir_itters, dir_goal_sample_prob, dir_path_cost, dir_distance_from_goal, dir_rrt_time)
 
-dir_paths_to_leaves = [[la for la in leaf.path] for leaf in dir_leaves]
-for lp in dir_paths_to_leaves:
-    dir_rrt_e.add_line(lp)
-    # for node_on_path in lp:
-    	# dir_rrt_e.add_search_space_node(node_on_path)
+    dir_leaves = find_leaf_nodes(dir_root_node)
 
-dir_rrt_e.add_path(dir_rrt_path)
+    dir_paths_to_leaves = [[la for la in leaf.path] for leaf in dir_leaves]
+    for lp in dir_paths_to_leaves:
+        dir_rrt_e.add_line(lp)
+        # for node_on_path in lp:
+            # dir_rrt_e.add_search_space_node(node_on_path)
 
-dir_rrt_e.add_start(start_point)
-dir_rrt_e.add_goal(goal_point)
-dir_fig = go.Figure(data=dir_rrt_e.data)
-dir_fig.update_layout(
-    title=dir_title,
-    font_family="Courier New",
-    font_color="blue",
-    title_font_family="Times New Roman",
-    title_font_color="red",
-    legend_title_font_color="green"
-)
-dir_fig.show()
+    dir_rrt_e.add_path(dir_rrt_path)
+
+    dir_rrt_e.add_start(start_point)
+    dir_rrt_e.add_goal(goal_point)
+    dir_fig = go.Figure(data=dir_rrt_e.data)
+    dir_fig.update_layout(
+        title=dir_title,
+        font_family="Courier New",
+        font_color="blue",
+        title_font_family="Times New Roman",
+        title_font_color="red",
+        legend_title_font_color="green"
+    )
+    dir_fig.show()
 
 ##### RRT STAR #####
 
-star_rrt_path, star_path_cost, star_distance_from_goal, star_root_node, star_rrt_time  = rrt_star_iter_bound(star_rrt_e, start_point, goal_point, max_iters, check_neighbor_radius, PED, extend_length)
+if SRRT:
 
-star_title = "RRT* (Iter={}, NN_Rad={}, Cost={}, Distance={}) in {} sec".format(max_iters, check_neighbor_radius, star_path_cost, distance_from_goal, star_rrt_time)
+    star_rrt_path, star_path_cost, star_distance_from_goal, star_root_node, star_rrt_time, star_itters  = rrt_star_iter_bound(star_rrt_e, start_point, goal_point, max_iters, check_neighbor_radius, PED, prob_sample_goal=star_goal_sample_prob, extend_length=extending_length)
 
-star_leaves = find_leaf_nodes(star_root_node)
+    star_title = "RRT* (Iter={}, NN_Rad={}, p_g_samp={}, Cost={}, Distance={}) in {} sec".format(star_itters, check_neighbor_radius, star_goal_sample_prob, star_path_cost, star_distance_from_goal, star_rrt_time)
 
-star_paths_to_leaves = [[la for la in leaf.path] for leaf in star_leaves]
-for lp in star_paths_to_leaves:
-    star_rrt_e.add_line(lp)
-    # for node_on_path in lp:
-    	# star_rrt_e.add_search_space_node(node_on_path)
+    # for n in star_rrt_path:
+    #     star_rrt_e.add_search_space_node(n)
 
-star_rrt_e.add_path(star_rrt_path)
+    star_leaves = find_leaf_nodes(star_root_node)
 
-star_rrt_e.add_start(start_point)
-star_rrt_e.add_goal(goal_point)
-star_fig = go.Figure(data=star_rrt_e.data)
-star_fig.update_layout(
-    title=star_title,
-    font_family="Courier New",
-    font_color="blue",
-    title_font_family="Times New Roman",
-    title_font_color="red",
-    legend_title_font_color="green"
-)
-star_fig.show()
+    star_paths_to_leaves = [[la for la in leaf.path] for leaf in star_leaves]
+    for lp in star_paths_to_leaves:
+        star_rrt_e.add_line(lp)
+        # for node_on_path in lp:
+            # star_rrt_e.add_search_space_node(node_on_path)
+
+    star_rrt_e.add_path(star_rrt_path)
+
+    star_rrt_e.add_start(start_point)
+    star_rrt_e.add_goal(goal_point)
+    star_fig = go.Figure(data=star_rrt_e.data)
+    star_fig.update_layout(
+        title=star_title,
+        font_family="Courier New",
+        font_color="blue",
+        title_font_family="Times New Roman",
+        title_font_color="red",
+        legend_title_font_color="green"
+    )
+    star_fig.show()
+
+##### DRRT STAR #####
+
+if DSRRT:
+
+    d_star_rrt_path, d_star_path_cost, d_star_distance_from_goal, d_star_root_node, d_star_rrt_time, d_star_itters  = rrt_star_iter_bound(d_star_rrt_e, start_point, goal_point, max_iters, check_neighbor_radius, PED, prob_sample_goal=d_star_goal_sample_prob, extend_length=extending_length)
+
+    d_star_title = "Dir-RRT* (Iter={}, NN_Rad={}, p_g_samp={}, Cost={}, Distance={}) in {} sec".format(d_star_itters, check_neighbor_radius, d_star_goal_sample_prob, d_star_path_cost, d_star_distance_from_goal, d_star_rrt_time)
+
+    # for n in d_star_rrt_path:
+    #     d_star_rrt_e.add_search_space_node(n)
+
+    d_star_leaves = find_leaf_nodes(d_star_root_node)
+
+    d_star_paths_to_leaves = [[la for la in leaf.path] for leaf in d_star_leaves]
+    for lp in d_star_paths_to_leaves:
+        d_star_rrt_e.add_line(lp)
+        # for node_on_path in lp:
+            # d_star_rrt_e.add_search_space_node(node_on_path)
+
+    d_star_rrt_e.add_path(star_rrt_path)
+
+    d_star_rrt_e.add_start(start_point)
+    d_star_rrt_e.add_goal(goal_point)
+    d_star_fig = go.Figure(data=d_star_rrt_e.data)
+    d_star_fig.update_layout(
+        title=d_star_title,
+        font_family="Courier New",
+        font_color="blue",
+        title_font_family="Times New Roman",
+        title_font_color="red",
+        legend_title_font_color="green"
+    )
+    d_star_fig.show()

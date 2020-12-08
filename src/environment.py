@@ -96,7 +96,6 @@ class Environment:
             x.append(point[0])
             y.append(point[1])
             z.append(point[2])
-        # trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         self.data.append(trace)       
 
@@ -126,31 +125,18 @@ class Environment:
         )
         self.data.append(trace)
 
-    def add_search_space_node(self, ss_node):
+    def add_search_space_node(self, ss_node, mark_color="black"):
         trace = go.Scatter3d(
             x=[ss_node[0]],
             y=[ss_node[1]],
             z=[ss_node[2]],
             line=dict(
-                color="black",
+                color=mark_color,
                 width=1
             ),
             mode="markers"
         )
         self.data.append(trace)
-
-    # def add_leaf(self, goal_point):
-    #     trace = go.Scatter3d(
-    #         x=[goal_point[0]],
-    #         y=[goal_point[1]],
-    #         z=[goal_point[2]],
-    #         line=dict(
-    #             color="green",
-    #             width=10
-    #         ),
-    #         mode="markers"
-    #     )
-    #     self.data.append(trace)
 
 
     # Still Need to modify RRT/environemnt to use RTree for collision detection and tree management
