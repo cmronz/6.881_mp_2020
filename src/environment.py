@@ -9,8 +9,20 @@ from plotly import graph_objs as go
 ############################ Environment ############################
 #####################################################################
 
+def create_obstacle_boundary(obstacle, obstacle_boundary_value):
+    ''' Creates dimensions for an obstacle '''
+    
+    dimensions = int(len(obstacle) / 2)
+
+    boundary_min = obstacle[:dimensions] - obstacle_boundary_value
+    boundary_max = obstacle[dimensions:] + obstacle_boundary_value
+
+    boundary = np.hstack((boundary_min, boundary_max))
+
+    return tuple(boundary)
+
 class Environment:
-    def __init__(self, filename='rrt3d', bounds=None, obstacles=None):
+    def __init__(self, filename='rrt3d', bounds=None, obstacles=None, obstacle_colors=None, obstacle_boundaries=False, obstacle_boundary_value=0.0):
         ''' 
         @param bounds = 6-element tuple (minx, miny, minz, maxx, maxy, maxz)
         '''
@@ -32,8 +44,18 @@ class Environment:
         if obstacles is None:
             self.obstacles = index.Index(interleaved=True, properties=properties)
         else:
-            self.add_obstacles(obstacles)
-            self.obstacles = index.Index(ob_gen(obstacles), interleaved=True, properties=properties)
+            self.add_obstacles(obstacles, obstacle_colors)
+
+            # Check if should check for collisions with actual objects or with a buffer around the objects
+            if obstacle_boundaries:
+                boundaries = list()
+                for obs in obstacles:
+                    boundaries.append(create_obstacle_boundary(obs, obstacle_boundary_value))
+                boundaries = np.array(boundaries)
+                self.add_boundary_obstacles(boundaries)
+                self.obstacles = index.Index(ob_gen(boundaries), interleaved=True, properties=properties)
+            else:
+                self.obstacles = index.Index(ob_gen(obstacles), interleaved=True, properties=properties)
 
     def is_point_obstacle_free(self, point):
         return self.obstacles.count(point) == 0
@@ -45,24 +67,39 @@ class Environment:
                 return False
         return True
 
-    def add_obstacles(self, obstacles):
-        ''' Assumes obstacle is a '''
-
-        for obstacle in obstacles:
-            obs = go.Mesh3d(
-                x=[obstacle[0], obstacle[0], obstacle[3], obstacle[3], obstacle[0], obstacle[0], obstacle[3], obstacle[3]],
-                y=[obstacle[1], obstacle[4], obstacle[4], obstacle[1], obstacle[1], obstacle[4], obstacle[4], obstacle[1]],
-                z=[obstacle[2], obstacle[2], obstacle[2], obstacle[2], obstacle[5], obstacle[5], obstacle[5], obstacle[5]],
-                i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
-                j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
-                k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
-                color='rgba(178, 34, 34, 1.0)',
-                opacity=0.70
-            )
-            self.data.append(obs)
+    def add_obstacles(self, obstacles, colors=None):
+        ''' Assumes obstacle is a np array of obstacles'''
+        if colors:
+            for i in range(len(colors)):
+                o_color = colors[i]
+                obstacle = obstacles[i]
+                obs = go.Mesh3d(
+                    x=[obstacle[0], obstacle[0], obstacle[3], obstacle[3], obstacle[0], obstacle[0], obstacle[3], obstacle[3]],
+                    y=[obstacle[1], obstacle[4], obstacle[4], obstacle[1], obstacle[1], obstacle[4], obstacle[4], obstacle[1]],
+                    z=[obstacle[2], obstacle[2], obstacle[2], obstacle[2], obstacle[5], obstacle[5], obstacle[5], obstacle[5]],
+                    i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+                    j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+                    k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+                    color=o_color,
+                    opacity=0.70
+                )
+                self.data.append(obs)
+        else: 
+            for obstacle in obstacles:
+                obs = go.Mesh3d(
+                    x=[obstacle[0], obstacle[0], obstacle[3], obstacle[3], obstacle[0], obstacle[0], obstacle[3], obstacle[3]],
+                    y=[obstacle[1], obstacle[4], obstacle[4], obstacle[1], obstacle[1], obstacle[4], obstacle[4], obstacle[1]],
+                    z=[obstacle[2], obstacle[2], obstacle[2], obstacle[2], obstacle[5], obstacle[5], obstacle[5], obstacle[5]],
+                    i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+                    j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+                    k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+                    color='rgba(178, 34, 34, 1.0)',
+                    opacity=0.70
+                )
+                self.data.append(obs)
 
     def add_boundary_obstacles(self, obstacles):
-        ''' Assumes obstacle is a '''
+        ''' Assumes obstacle is a np array of obstacles'''
 
         for obstacle in obstacles:
             obs = go.Mesh3d(
@@ -72,7 +109,7 @@ class Environment:
                 i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
                 j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
                 k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
-                color='rgba(195, 253, 253, 0.15)',
+                color='rgba(195, 253, 253, 0.5)',
                 opacity=0.70
             )
             self.data.append(obs)
