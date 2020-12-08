@@ -70,18 +70,6 @@ def find_nearest_neighbors_within_radius(xyz, nodes, radius):
     nn.sort(key = lambda k: k[1])
     return nn
 
-# def find_nearest_neighbors_within_radius_2(xyz, nodes, radius):
-#     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
-#     point = np.array(xyz)
-#     nn = list()
-#     for n in nodes:
-#         d = dist_between_np_array_points(n.xyz, xyz)
-#         if d < radius:
-#             cost = n.cost + d
-#             nn.append((n, cost))
-#     nn.sort(key = lambda k: k[1])
-#     return nn
-
 def find_nearest_neighbors_within_radius_distance_to_point_included(xyz, nodes, radius):
     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
     point = np.array(xyz)
