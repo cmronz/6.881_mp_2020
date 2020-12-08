@@ -21,7 +21,9 @@ one_big_box = np.array([(2.75, 2.75, 2.75, 7.75, 7.75, 7.75)])
 
 wall_with_gap = np.array([(1.5, 5, 1, 2.5, 10, 10), (1.5, 1, 1, 2.5, 4, 10)])
 
-obs = scattered_small_boxes
+cabinet = np.array([(.5, .35, 0, 1.05, .45, .75)])
+
+obs = cabinet
 
 
 #####################################################################
@@ -84,15 +86,71 @@ obs = scattered_small_boxes
 ################################ RRT* ###############################
 #####################################################################
 
-star_e = Environment(filename='rrt*', bounds=environment_bounds, obstacles=obs)
+# star_e = Environment(filename='rrt*', bounds=environment_bounds, obstacles=obs)
+
+# np.random.seed(50)
+
+# prob_check_sol = 0.01
+# max_it = 250
+# check_neighbor_radius = 3
+
+# star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(star_e, start_point, radius, goal_point, max_it, check_neighbor_radius)
+
+# '''
+# Title follows the form:
+# 'RRT* MI ( {Max Iterations}, {Neighbor Checking Radius}, 
+#            {True Path Cost}, {Distance from Last Node in Path to Goal} ) 
+#         in {Total Time for Algorithm to Return Path} sec'
+# '''
+# star_e_title = "RRT* MI ({}, {}, {}, {}) in {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
+
+# # print("Last Node: {}".format(star_path[-1]))
+
+# leaves = find_leaf_nodes(root_node)
+
+# paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
+# for lp in paths_to_leaves:
+#     star_e.add_line(lp)
+
+# star_e.add_path(star_path)
+# star_e.add_start(start_point)
+# star_e.add_goal(goal_point)
+# star_fig = go.Figure(data=star_e.data)
+# star_fig.update_layout(
+#     title=star_e_title,
+#     font_family="Courier New",
+#     font_color="blue",
+#     title_font_family="Times New Roman",
+#     title_font_color="red",
+#     legend_title_font_color="green"
+# )
+# # py.plot(star_fig, filename=star_e_title, auto_open=True)
+# star_fig.show()
+
+#####################################################################
+################################ TEST ###############################
+#####################################################################
+
+# test_bounds = (-1, -1, -1, 1, 1, 1) FUGLY PATH
+# test_bounds = (0, -0.1, -0.1, 1, 0.75, 0.6)  No Cabinet
+test_bounds = (-.3, -0.1, -0.1, 1.1, 0.75, 0.8)
+t_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=obs)
 
 np.random.seed(50)
 
-prob_check_sol = 0.01
-max_it = 250
-check_neighbor_radius = 3
+max_it = 100
+check_neighbor_radius = 0.15 
 
-star_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(star_e, start_point, radius, goal_point, max_it, check_neighbor_radius)
+# start_point = (-0.5, 0, 0.1) # didnt work
+# start_point = (0.7, 0.5, 0.1) # start for tuning params
+start_point = (0.7, 0.5, 0.5)
+
+goal_point = (0.5, 0, 0.65) 
+
+# point_extraction_distance
+PED = 0.1
+extend_length = 0.01
+
 
 '''
 Title follows the form:
@@ -100,22 +158,25 @@ Title follows the form:
            {True Path Cost}, {Distance from Last Node in Path to Goal} ) 
         in {Total Time for Algorithm to Return Path} sec'
 '''
-star_e_title = "RRT* MI ({}, {}, {}, {}) in {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
 
-# print("Last Node: {}".format(star_path[-1]))
+test_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(t_e, start_point, radius, goal_point, max_it, check_neighbor_radius, PED, extend_length)
+
+test_title = "RRT* MIn ({}, {}, {}, {}) in {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
+# test_title = " Davinky!?! "
 
 leaves = find_leaf_nodes(root_node)
 
 paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
 for lp in paths_to_leaves:
-    star_e.add_line(lp)
+    t_e.add_line(lp)
 
-star_e.add_path(star_path)
-star_e.add_start(start_point)
-star_e.add_goal(goal_point)
-star_fig = go.Figure(data=star_e.data)
-star_fig.update_layout(
-    title=star_e_title,
+t_e.add_path(test_path)
+
+t_e.add_start(start_point)
+t_e.add_goal(goal_point)
+t_fig = go.Figure(data=t_e.data)
+t_fig.update_layout(
+    title=test_title,
     font_family="Courier New",
     font_color="blue",
     title_font_family="Times New Roman",
@@ -123,7 +184,8 @@ star_fig.update_layout(
     legend_title_font_color="green"
 )
 # py.plot(star_fig, filename=star_e_title, auto_open=True)
-star_fig.show()
+# print('Path found of length: {}\n\n Here is the path ==> \n{}'.format(len(test_path), test_path))
+t_fig.show()
 
 #####################################################################
 ####################### Perftecly-Directed RRT ######################

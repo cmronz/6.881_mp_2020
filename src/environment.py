@@ -81,7 +81,7 @@ class Environment:
             y.append(point[1])
             z.append(point[2])
         # trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
-        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 1.0)', width=4), mode="lines")
+        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         self.data.append(trace)       
 
     def add_start(self, start_point):

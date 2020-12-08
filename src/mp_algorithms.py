@@ -192,10 +192,9 @@ def directed_rrt(bounds, start_point, radius, goal_point, prob_sample_goal=0.05,
 #             path_to_goal = [n for n in nearest_neighbor_to_goal.path]
 #             return path_to_goal, nearest_neighbor_to_goal.cost, nn_d_to_goal, root, time.time() - start_t
 
-def rrt_star_iter_bound(environment, start_point, radius, goal_point, max_iters, nn_rad):
+def rrt_star_iter_bound(environment, start_point, radius, goal_point, max_iters, nn_rad, point_extraction_distance, extend_length=1):
     ''' Returns a list of tuples describing an obstacle-free path that takes the robot from the start to the target region. '''
     start_t = time.time()
-    extend_length = 1
     root = Node(start_point)
 
     steps = 0
@@ -217,13 +216,13 @@ def rrt_star_iter_bound(environment, start_point, radius, goal_point, max_iters,
         nearest_neighbor = find_nearest_neighbor(ran_loc, all_nodes)
 
         # Get the line going from nearest vertex in G to random point, making our New Point
-        new_point = steer(nearest_neighbor.xyz, ran_loc, 1)
+        new_point = steer(nearest_neighbor.xyz, ran_loc, extend_length)
 
         # Make sure we don't intersect with any obstacles
-        if not environment.is_line_obstacle_free(nearest_neighbor.xyz, new_point, 0.25):
+        if not environment.is_line_obstacle_free(nearest_neighbor.xyz, new_point, point_extraction_distance):
             continue
 
-        best_neighbor_and_cost = (nearest_neighbor, 1 + nearest_neighbor.cost)
+        best_neighbor_and_cost = (nearest_neighbor, extend_length + nearest_neighbor.cost)
 
         ''' Still Need to Check for Collisions '''
 
