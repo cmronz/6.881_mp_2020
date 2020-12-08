@@ -218,7 +218,11 @@ def rrt_star_iter_bound(environment, start_point, radius, goal_point, max_iters,
         # Get the line going from nearest vertex in G to random point, making our New Point
         new_point = steer(nearest_neighbor.xyz, ran_loc, extend_length)
 
-        # Make sure we don't intersect with any obstacles
+        # Make sure point is not inside obstacle
+        if not environment.is_point_obstacle_free(new_point):
+            continue
+
+        # Make sure points along line to new point do not intersect obstacle
         if not environment.is_line_obstacle_free(nearest_neighbor.xyz, new_point, point_extraction_distance):
             continue
 

@@ -110,6 +110,19 @@ class Environment:
         )
         self.data.append(trace)
 
+    def add_search_space_node(self, ss_node):
+        trace = go.Scatter3d(
+            x=[ss_node[0]],
+            y=[ss_node[1]],
+            z=[ss_node[2]],
+            line=dict(
+                color="black",
+                width=1
+            ),
+            mode="markers"
+        )
+        self.data.append(trace)
+
     # def add_leaf(self, goal_point):
     #     trace = go.Scatter3d(
     #         x=[goal_point[0]],

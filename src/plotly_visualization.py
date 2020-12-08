@@ -21,7 +21,7 @@ one_big_box = np.array([(2.75, 2.75, 2.75, 7.75, 7.75, 7.75)])
 
 wall_with_gap = np.array([(1.5, 5, 1, 2.5, 10, 10), (1.5, 1, 1, 2.5, 4, 10)])
 
-cabinet = np.array([(.5, .35, 0, 1.05, .45, .75)])
+cabinet = np.array([(.5, .25, 0, 1.05, .45, .75)])
 
 obs = cabinet
 
@@ -131,14 +131,14 @@ obs = cabinet
 ################################ TEST ###############################
 #####################################################################
 
-# test_bounds = (-1, -1, -1, 1, 1, 1) FUGLY PATH
+# test_bounds = (-1, -1, -1, 1, 1, 1)
 # test_bounds = (0, -0.1, -0.1, 1, 0.75, 0.6)  No Cabinet
 test_bounds = (-.3, -0.1, -0.1, 1.1, 0.75, 0.8)
 t_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=obs)
 
 np.random.seed(50)
 
-max_it = 100
+max_it = 1000
 check_neighbor_radius = 0.15 
 
 # start_point = (-0.5, 0, 0.1) # didnt work
@@ -149,7 +149,7 @@ goal_point = (0.5, 0, 0.65)
 
 # point_extraction_distance
 PED = 0.1
-extend_length = 0.01
+extend_length = 0.05
 
 
 '''
@@ -162,13 +162,14 @@ Title follows the form:
 test_path, path_cost, distance_from_goal, root_node, star_rrt_time  = rrt_star_iter_bound(t_e, start_point, radius, goal_point, max_it, check_neighbor_radius, PED, extend_length)
 
 test_title = "RRT* MIn ({}, {}, {}, {}) in {} sec".format(max_it, check_neighbor_radius, path_cost, distance_from_goal, star_rrt_time)
-# test_title = " Davinky!?! "
 
 leaves = find_leaf_nodes(root_node)
 
 paths_to_leaves = [[la for la in leaf.path] for leaf in leaves]
 for lp in paths_to_leaves:
     t_e.add_line(lp)
+    # for node_on_path in lp:
+    	# t_e.add_search_space_node(node_on_path)
 
 t_e.add_path(test_path)
 
