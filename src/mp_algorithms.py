@@ -163,18 +163,16 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
 
         steps += 1
 
-        best_neighbor_and_cost = (nearest_neighbor, extend_length + nearest_neighbor.cost)
-
         # This is a list of tuples of (reference to a node that is with nn_rad distance of the new point, 
         # and the Cost(neighbor node) + Cost(line from this neighbor node to new point))
         neighbors_within_radius = find_nearest_neighbors_within_radius(new_point, all_nodes, nn_rad)
 
-        min_cost = nearest_neighbor.cost
+        min_cost = nearest_neighbor.cost + extend_length
         min_node = nearest_neighbor
 
         for neighbor in neighbors_within_radius:
 
-            cost_from_neighbor_to_new_node = neighbor[1]
+            cost_from_neighbor_to_new_node = neighbor[1] - neighbor[0].cost
 
             # If it is shorter path distance from new point, to one of the near neighbors...
             if cost_from_neighbor_to_new_node < min_cost:
@@ -204,7 +202,6 @@ def rrt_star_iter_bound(environment, start_point, goal_point, max_iters, nn_rad,
                     # Mark their parent as being the newly formed node
                     neighbor[0].parent = new_node
                     new_node.children.append(neighbor[0])
-
                     # Set the cost of the neighbor to now reflect the shorter distance through our newly formed node
                     neighbor[0].cost = cost_from_new_node_to_nearby_neighbor
 

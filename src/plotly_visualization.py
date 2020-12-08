@@ -12,9 +12,6 @@ environment_bounds = (0, 0, 0, 11, 11, 11)
 start_point = (0, 0, 0)  # starting location
 goal_point = (10, 10, 10)  # goal location
 
-# TODO (Make this a function of environment for buffer objects)
-radius = 3 # radius of robot moving (used in collision detection)
-
 scattered_small_boxes = np.array(
     [(2, 2, 2, 4, 4, 4), (2, 2, 6, 4, 4, 8), (2, 6, 2, 4, 8, 4), (6, 6, 2, 8, 8, 4),
      (6, 2, 2, 8, 4, 4), (6, 2, 6, 8, 4, 8), (2, 6, 6, 4, 8, 8), (6, 6, 6, 8, 8, 8)])
@@ -131,6 +128,13 @@ obs = scattered_small_boxes
 ################################ TEST ###############################
 #####################################################################
 
+JUST_ENV = False
+RRT = False
+DRRT = False
+SRRT = False
+DSRRT = False
+
+JUST_ENV = True
 RRT = True
 DRRT = True
 SRRT = True
@@ -142,15 +146,18 @@ cabinet = np.array([(.5, .25, 0, 1.05, .45, .75)])
 kuka = np.array([(-.1, -.1, 0, .1, .1, .75)])
 
 robot_vis_obs = cabinet
-
 test_bounds = (-.3, -0.1, -0.1, 1.1, 0.75, 0.8)
-rrt_e = Environment(filename='plain rrt', bounds=test_bounds, obstacles=robot_vis_obs)
-dir_rrt_e = Environment(filename='dir rrt', bounds=test_bounds, obstacles=robot_vis_obs)
-star_rrt_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=robot_vis_obs)
-d_star_rrt_e = Environment(filename='dir rrt*', bounds=test_bounds, obstacles=robot_vis_obs)
+
+obs_boundary_value = 0.025
+
+only_environment = Environment(filename='plain rrt', bounds=test_bounds, obstacles=robot_vis_obs, obstacle_colors=['green'], obstacle_boundaries=True, obstacle_boundary_value=obs_boundary_value)
+rrt_e = Environment(filename='plain rrt', bounds=test_bounds, obstacles=robot_vis_obs, obstacle_boundaries=True, obstacle_boundary_value=obs_boundary_value)
+dir_rrt_e = Environment(filename='dir rrt', bounds=test_bounds, obstacles=robot_vis_obs, obstacle_boundaries=True, obstacle_boundary_value=obs_boundary_value)
+star_rrt_e = Environment(filename='rrt*', bounds=test_bounds, obstacles=robot_vis_obs, obstacle_boundaries=True, obstacle_boundary_value=obs_boundary_value)
+d_star_rrt_e = Environment(filename='dir rrt*', bounds=test_bounds, obstacles=robot_vis_obs, obstacle_boundaries=True, obstacle_boundary_value=obs_boundary_value)
 
 
-max_iters = 1500
+max_iters = 1000
 check_neighbor_radius = 0.05 
 
 start_point = (0.7, 0.5, 0.5)
@@ -173,6 +180,24 @@ Title follows the form:
            {True Path Cost}, {Distance from Last Node in Path to Goal} ) 
         in {Total Time for Algorithm to Return Path} sec'
 '''
+
+if JUST_ENV:
+    
+    env_title = "Environment for RRT"
+
+    only_environment.add_start(start_point)
+    only_environment.add_goal(goal_point)
+    env_fig = go.Figure(data=only_environment.data)
+    env_fig.update_layout(
+        title=env_title,
+        font_family="Courier New",
+        font_color="blue",
+        title_font_family="Times New Roman",
+        title_font_color="red",
+        legend_title_font_color="green"
+    )
+    env_fig.show()
+
 
 ##### PLAIN RRT #####
 
@@ -242,7 +267,7 @@ if SRRT:
 
     star_rrt_path, star_path_cost, star_distance_from_goal, star_root_node, star_rrt_time, star_itters  = rrt_star_iter_bound(star_rrt_e, start_point, goal_point, max_iters, check_neighbor_radius, PED, prob_sample_goal=star_goal_sample_prob, extend_length=extending_length)
 
-    star_title = "RRT* (Iter={}, NN_Rad={}, p_g_samp={}, Cost={}, Distance={}) in {} sec".format(star_itters, check_neighbor_radius, star_goal_sample_prob, star_path_cost, star_distance_from_goal, star_rrt_time)
+    star_title = "RRT* (Iter={}, NN_Rad={}, Cost={}, Distance={}) in {} sec".format(star_itters, check_neighbor_radius, star_path_cost, star_distance_from_goal, star_rrt_time)
 
     # for n in star_rrt_path:
     #     star_rrt_e.add_search_space_node(n)
