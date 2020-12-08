@@ -49,15 +49,6 @@ def find_nearest_neighbor_with_distance(xyz, nodes):
             nn = n
     return nn, mind
 
-def nn_insertion_sort(nns, new_neighbor):
-    cost = new_neighbor[1]
-    ind = len(nns)
-    for i in range(len(nns)):
-        if cost < nns[i][1]:
-            ind = i
-            break
-    nns.insert(ind, new_neighbor)
-
 def find_nearest_neighbors_within_radius(xyz, nodes, radius):
     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
     point = np.array(xyz)
@@ -65,32 +56,8 @@ def find_nearest_neighbors_within_radius(xyz, nodes, radius):
     for n in nodes:
         d = dist_between_np_array_points(n.xyz, xyz)
         if d < radius:
-            cost = n.cost #path_cost(n) + d
-            nn.append((n, cost))
-    nn.sort(key = lambda k: k[1])
-    return nn
-
-# def find_nearest_neighbors_within_radius_2(xyz, nodes, radius):
-#     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
-#     point = np.array(xyz)
-#     nn = list()
-#     for n in nodes:
-#         d = dist_between_np_array_points(n.xyz, xyz)
-#         if d < radius:
-#             cost = n.cost + d
-#             nn.append((n, cost))
-#     nn.sort(key = lambda k: k[1])
-#     return nn
-
-def find_nearest_neighbors_within_radius_distance_to_point_included(xyz, nodes, radius):
-    ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
-    point = np.array(xyz)
-    nn = list()
-    for n in nodes:
-        d = dist_between_np_array_points(n.xyz, xyz)
-        if d < radius:
             cost = n.cost + d
-            nn_insertion_sort(nn, (n, cost))
+            nn.append((n, cost))
     return nn
 
 def sample_cube(bounds):

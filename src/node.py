@@ -17,9 +17,6 @@ class Node(object):
         for c in self.children:
             for n in c.all_descendents:
                 yield n
-    @property
-    def point(self):
-        return Point(self.xyz)
     
     @property
     def all_ancestors(self):

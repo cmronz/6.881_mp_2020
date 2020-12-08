@@ -61,6 +61,22 @@ class Environment:
             )
             self.data.append(obs)
 
+    def add_boundary_obstacles(self, obstacles):
+        ''' Assumes obstacle is a '''
+
+        for obstacle in obstacles:
+            obs = go.Mesh3d(
+                x=[obstacle[0], obstacle[0], obstacle[3], obstacle[3], obstacle[0], obstacle[0], obstacle[3], obstacle[3]],
+                y=[obstacle[1], obstacle[4], obstacle[4], obstacle[1], obstacle[1], obstacle[4], obstacle[4], obstacle[1]],
+                z=[obstacle[2], obstacle[2], obstacle[2], obstacle[2], obstacle[5], obstacle[5], obstacle[5], obstacle[5]],
+                i=[7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+                j=[3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+                k=[0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+                color='rgba(195, 253, 253, 0.15)',
+                opacity=0.70
+            )
+            self.data.append(obs)
+
     def add_path(self, path):
         ''' path is a list of (x, y, z) points '''
         
@@ -80,7 +96,6 @@ class Environment:
             x.append(point[0])
             y.append(point[1])
             z.append(point[2])
-        # trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color='rgba(0, 0, 139, 0.15)', width=4), mode="lines")
         self.data.append(trace)       
 
@@ -110,31 +125,18 @@ class Environment:
         )
         self.data.append(trace)
 
-    def add_search_space_node(self, ss_node):
+    def add_search_space_node(self, ss_node, mark_color="black"):
         trace = go.Scatter3d(
             x=[ss_node[0]],
             y=[ss_node[1]],
             z=[ss_node[2]],
             line=dict(
-                color="black",
+                color=mark_color,
                 width=1
             ),
             mode="markers"
         )
         self.data.append(trace)
-
-    # def add_leaf(self, goal_point):
-    #     trace = go.Scatter3d(
-    #         x=[goal_point[0]],
-    #         y=[goal_point[1]],
-    #         z=[goal_point[2]],
-    #         line=dict(
-    #             color="green",
-    #             width=10
-    #         ),
-    #         mode="markers"
-    #     )
-    #     self.data.append(trace)
 
 
     # Still Need to modify RRT/environemnt to use RTree for collision detection and tree management
