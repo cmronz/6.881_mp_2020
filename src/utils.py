@@ -49,15 +49,14 @@ def find_nearest_neighbor_with_distance(xyz, nodes):
             nn = n
     return nn, mind
 
-def find_nearest_neighbors_within_radius(xyz, nodes, radius):
+def get_nearby_neighbors(xyz, nodes, radius):
     ''' Returns the nodes (iterable) withing radius of xyz to location xy '''
     point = np.array(xyz)
     nn = list()
     for n in nodes:
         d = dist_between_np_array_points(n.xyz, xyz)
         if d < radius:
-            cost = n.cost + d
-            nn.append((n, cost))
+            nn.append(n)
     return nn
 
 def sample_cube(bounds):
@@ -80,6 +79,7 @@ def form_full_tree_with_piecewise_pairings(node):
         all_lines.append((node.xyz, child.xyz))
         all_lines.extend(form_full_tree_with_piecewise_pairings(child))
     return all_lines
+    return
 
 def find_leaf_nodes(node):
     leaves = list()
@@ -89,3 +89,17 @@ def find_leaf_nodes(node):
         else:
             leaves.extend(find_leaf_nodes(child))
     return leaves
+
+def calc_path_cost(path):
+    cost = 0
+    for i in range(len(path) - 1):
+        cost += dist_between_points(path[i], path[i+1])
+    return cost
+
+
+
+
+
+
+
+

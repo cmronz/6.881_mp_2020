@@ -22,7 +22,7 @@ def create_obstacle_boundary(obstacle, obstacle_boundary_value):
     return tuple(boundary)
 
 class Environment:
-    def __init__(self, filename='rrt3d', bounds=None, obstacles=None, obstacle_colors=None, obstacle_boundaries=False, obstacle_boundary_value=0.0):
+    def __init__(self, filename='rrt3d', bounds=None, obstacles=None, obstacle_colors=None, obstacle_boundaries=False, obstacle_boundary_value=0.0, draw_boundaries=False):
         ''' 
         @param bounds = 6-element tuple (minx, miny, minz, maxx, maxy, maxz)
         '''
@@ -52,7 +52,8 @@ class Environment:
                 for obs in obstacles:
                     boundaries.append(create_obstacle_boundary(obs, obstacle_boundary_value))
                 boundaries = np.array(boundaries)
-                self.add_boundary_obstacles(boundaries)
+                if draw_boundaries:
+                    self.add_boundary_obstacles(boundaries)
                 self.obstacles = index.Index(ob_gen(boundaries), interleaved=True, properties=properties)
             else:
                 self.obstacles = index.Index(ob_gen(obstacles), interleaved=True, properties=properties)
@@ -114,7 +115,7 @@ class Environment:
             )
             self.data.append(obs)
 
-    def add_path(self, path):
+    def add_path(self, path, path_color='red'):
         ''' path is a list of (x, y, z) points '''
         
         x, y, z = [], [], []
@@ -122,7 +123,7 @@ class Environment:
             x.append(point[0])
             y.append(point[1])
             z.append(point[2])
-        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color="red", width=4), mode="lines")
+        trace = go.Scatter3d(x=x, y=y, z=z, line=dict(color=path_color, width=4), mode="lines")
         self.data.append(trace)
 
     def add_line(self, endpoints):
