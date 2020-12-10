@@ -3,12 +3,10 @@ import numpy as np
 from shapely.geometry import Point
 
 class Node(object):
-    def __init__(self, point, children=None, parent=None, cost=0):
+    def __init__(self, point, children=None, parent=None):
         self.xyz = np.array(point)
         self.parent = parent
         self.children = children if children else []
-        # TODO move this to a new node class custom defined for RRT*
-        self.cost = cost
     
     @property
     def all_descendents(self):
